@@ -1,0 +1,150 @@
+package edu.yu.cs.com1320.project.stage2.impl;
+
+import edu.yu.cs.com1320.project.HashTable;
+import edu.yu.cs.com1320.project.impl.HashTableImpl;
+import edu.yu.cs.com1320.project.stage2.Document;
+import java.net.URI;
+import java.util.Arrays;
+
+public class DocumentImpl implements Document {
+    private URI myUri;
+    private String myTxt;
+    private byte[] myBytes;
+    private HashTableImpl<String, String> myMetaData;
+
+    /**
+     * @param uri the uri which represents this document
+     * @param txt the string contents of this document
+     * @throws IllegalArgumentException if either argument is null or blank
+     */
+    public DocumentImpl(URI uri, String txt){
+        if (uri == null || uri.toString().isBlank()){
+            throw new IllegalArgumentException("uri is null or blank");
+        }
+        if (txt == null || txt.isBlank()){
+            throw new IllegalArgumentException("there are no contents here");
+        }
+        this.myUri = uri;
+        this.myTxt = txt;
+        this.myMetaData = new HashTableImpl<>();
+    }
+
+    /**
+     * @param uri the uri which represents this document
+     * @param binaryData the contents of this document as raw bytes
+     * @throws IllegalArgumentException if either argument is null or blank
+     */
+    public DocumentImpl(URI uri, byte[] binaryData){
+        if (uri == null || uri.toString().isBlank()){
+            throw new IllegalArgumentException("uri is null or blank");
+        }
+        if (binaryData == null || binaryData.length == 0){
+            throw new IllegalArgumentException("there's nothing here");
+        }
+        this.myUri = uri;
+        this.myBytes = binaryData;
+        this.myMetaData = new HashTableImpl<>();
+    }
+
+    /**
+     * @param key key of document metadata to store a value for
+     * @param value value to store
+     * @return old value, or null if there was no old value
+     * @throws IllegalArgumentException if the key is null or blank
+     */
+    @Override
+    public String setMetadataValue(String key, String value) {
+        if (key == null || key.isBlank()){
+            throw new IllegalArgumentException("You didn't send a key");
+        }
+        return myMetaData.put(key, value);
+    }
+
+    /**
+     * @param key metadata key whose value we want to retrieve
+     * @return corresponding value, or null if there is no such key
+     * @throws IllegalArgumentException if the key is null or blank
+     */
+    @Override
+    public String getMetadataValue(String key) {
+        if (key == null || key.isBlank()){
+            throw new IllegalArgumentException("You didn't send a key");
+        }
+        return myMetaData.get(key);
+    }
+
+    /**
+     * @return a COPY of the metadata saved in this document
+     */
+    @Override
+    public HashTable<String, String> getMetadata() {
+        HashTable<String, String> copy = new HashTableImpl<>();
+        for (String key : myMetaData.keySet()){
+            copy.put(key, myMetaData.get(key));
+        }
+        return copy;
+    }
+
+    /**
+     * @return content of text document
+     */
+    @Override
+    public String getDocumentTxt() {
+        return this.myTxt;
+    }
+
+    /**
+     * @return content of binary data document
+     */
+    @Override
+    public byte[] getDocumentBinaryData() {
+        return this.myBytes;
+    }
+
+    /**
+     * @return URI which uniquely identifies this document
+     */
+    @Override
+    public URI getKey() {
+        return this.myUri;
+    }
+
+    /**
+     * @return the hashcode of the document, based on uri and contents
+     */
+    public int hashCode(){
+        int result = this.myUri.hashCode();
+        result = 31 * result + (this.myTxt != null ? myTxt.hashCode() : 0);
+        result = 31 * result + Arrays.hashCode(myBytes);
+        return Math.abs(result);
+    }
+
+    /**
+     * compares this document to another one
+     * @param o   the reference object with which to compare.
+     * @return true if they are both documents, have the same URI, and the same contents
+     * @return false if this is not a document, or they have different URIs, or they have different contents
+     */
+    public boolean equals(Object o){
+        if (this == o){
+            return true;
+        }
+        if (o == null){
+            return false;
+        }
+        if (!(o instanceof DocumentImpl)){
+            return false;
+        }
+        DocumentImpl d = (DocumentImpl) o;
+        if (!(this.myUri.equals(d.myUri))){
+            return false;
+        }
+        if (this.myTxt == null && d.myTxt == null){ //they both have bytes
+            return Arrays.equals(this.myBytes, d.myBytes);
+        } else if (this.myBytes == null && d.myBytes == null){ //they both have text
+            return this.myTxt.equals(d.myTxt);
+        } else { //one has bytes and one has text
+            return false;
+        }
+    }
+}
