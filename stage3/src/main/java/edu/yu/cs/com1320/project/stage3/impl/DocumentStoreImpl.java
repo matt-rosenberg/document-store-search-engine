@@ -136,6 +136,11 @@ public class DocumentStoreImpl implements DocumentStore {
         if (url == null || url.toString().isBlank()){
             return false;
         }
+        DocumentImpl doc = (DocumentImpl) this.get(url);
+        if (doc != null){
+            Command com = new Command(url, u -> myDocs.put(u, doc));
+            allCommands.push(com);
+        }
         return (myDocs.put(url, null) != null);
     }
 

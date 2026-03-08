@@ -36,6 +36,9 @@ public class StackImpl<T> implements Stack<T> {
      * @return element at the top of the stack, null if the stack is empty
      */
     public T pop(){
+        if (this.size == 0){
+            return null;
+        }
         Element<T> oldTop = this.head;
         this.head = this.head.next;
         this.size--;
@@ -47,6 +50,9 @@ public class StackImpl<T> implements Stack<T> {
      * @return the element at the top of the stack without removing it
      */
     public T peek(){
+        if (this.size == 0){
+            return null;
+        }
         Element<T> top = this.head;
         return top.self;
     }

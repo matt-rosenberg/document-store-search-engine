@@ -41,6 +41,7 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> {
      * @param k the key at which to store the value
      * @param v the value to store
      *          To delete an entry, put a null value.
+     * Doubles the size of the array and re-hashes when M / 4 >= N
      * @return if the key was already present in the HashTable, return the previous value stored for the key. If the key was not already present, return null.
      */
     @Override
@@ -161,9 +162,9 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> {
                 Entry newEntry = new Entry(current.key, current.value);
                 int index = (current.key.hashCode() & 0x7fffffff) % newTable.length;
                 if (newTable[index] != null){
-                    newEntry.next = table[index];
+                    newEntry.next = newTable[index];
                 }
-                table[index] = newEntry;
+                newTable[index] = newEntry;
                 current = current.next;
             }
         }
