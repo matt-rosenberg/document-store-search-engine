@@ -9,7 +9,7 @@ public class TrieImpl<Value> implements Trie<Value> {
     private Node<Value> root;
 
     class Node<Value>{
-        Set<Value> values;
+        Set<Value> values = new HashSet<>();
         Node[] links = new Node[TrieImpl.alphabetSize];
         /**
          * adds a value to the Collection for this node. Creates the Set if it didn't exist previously.

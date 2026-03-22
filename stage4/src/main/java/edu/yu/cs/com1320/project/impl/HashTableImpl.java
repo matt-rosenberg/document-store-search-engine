@@ -147,6 +147,7 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> {
                 current.next = current.next.next;
                 return v;
             }
+            current = current.next;
         }
         return null;
     }
