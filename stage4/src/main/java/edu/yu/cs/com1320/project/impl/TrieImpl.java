@@ -69,8 +69,8 @@ public class TrieImpl<Value> implements Trie<Value> {
      * @return a List of matching Values. Empty List if no matches.
      */
     public List<Value> getSorted(String key, Comparator<Value> comparator){
-        if (key == null){
-            throw new IllegalArgumentException("You can't find a null key in the trie");
+        if (key == null || comparator == null){
+            throw new IllegalArgumentException("You can't find a null key in the trie. You can't sort with a null comparator");
         }
         Node x = this.get(this.root, key, 0);
         if (x == null || x.values == null){
@@ -126,8 +126,8 @@ public class TrieImpl<Value> implements Trie<Value> {
      * @return a List of all matching Values containing the given prefix, in descending order. Empty List if no matches.
      */
     public List<Value> getAllWithPrefixSorted(String prefix, Comparator<Value> comparator){
-        if (prefix == null){
-            throw new IllegalArgumentException("you didn't send a prefix to search");
+        if (prefix == null || comparator == null){
+            throw new IllegalArgumentException("you didn't send a prefix to search. You didn't send a comparator to sort with.");
         }
         Node pre = this.get(this.root, prefix, 0);
         if (pre == null){
@@ -233,8 +233,10 @@ public class TrieImpl<Value> implements Trie<Value> {
             return null;
         }
         if (depth == key.length()){
-            deleted = x.values;
-            x.values = null;
+            if (x.values != null){
+                deleted.addAll(x.values);
+                x.values = null;
+            }
         } else {
             char c = key.charAt(depth);
             x.links[c] = deleteAll(x.links[c], key, depth + 1, deleted);
@@ -257,6 +259,9 @@ public class TrieImpl<Value> implements Trie<Value> {
      * @return the value which was deleted. If the key did not contain the given value, return null.
      */
     public Value delete(String key, Value val){
+        if (key == null || val == null){
+            throw new IllegalArgumentException("you didn't send a key and/or value to delete");
+        }
         boolean[] wasDeleted = new boolean[1];
         this.delete(this.root, key, val, 0, wasDeleted);
         return wasDeleted[0] ? val : null;
@@ -276,8 +281,12 @@ public class TrieImpl<Value> implements Trie<Value> {
             return null;
         }
         if (depth == key.length()){
-            wasDeleted[0] = x.values.remove(val);
-            if (x.values.isEmpty()){
+            if (x.values != null){
+                wasDeleted[0] = x.values.remove(val);
+            } else {
+                wasDeleted[0] = false;
+            }
+            if (x.values != null && x.values.isEmpty()){
                 x.values = null;
             }
         } else {

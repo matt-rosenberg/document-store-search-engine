@@ -376,7 +376,7 @@ public class DocumentStoreImpl implements DocumentStore {
                 return doc2.wordCount(key) - doc1.wordCount(key);
             }
         };
-        return docSearch.getSorted(keyword, comparator);
+        return docSearch.getSorted(key, comparator);
     }
 
     @Override
@@ -425,7 +425,8 @@ public class DocumentStoreImpl implements DocumentStore {
      * @return a Set of URIs of the documents that were deleted.
      */
     public Set<URI> deleteAll(String keyword) {
-        Set<Document> docsWithKeyword = this.docSearch.deleteAll(keyword);
+        String key = stripIllegalCharacters(keyword);
+        Set<Document> docsWithKeyword = this.docSearch.deleteAll(key);
         Set<URI> deletedURIs = new HashSet<>();
         CommandSet<URI> commands = new CommandSet<>();
         for (Document doc : docsWithKeyword){
@@ -468,7 +469,8 @@ public class DocumentStoreImpl implements DocumentStore {
      * @return a Set of URIs of the documents that were deleted.
      */
     public Set<URI> deleteAllWithPrefix(String keywordPrefix) {
-        Set<Document> docsWithPrefix = docSearch.deleteAllWithPrefix(keywordPrefix);
+        String keypre = stripIllegalCharacters(keywordPrefix);
+        Set<Document> docsWithPrefix = docSearch.deleteAllWithPrefix(keypre);
         Set<URI> deletedURIs = new HashSet<>();
         CommandSet<URI> commands = new CommandSet<>();
         for (Document doc : docsWithPrefix){
@@ -492,6 +494,9 @@ public class DocumentStoreImpl implements DocumentStore {
      * @return a List of all documents whose metadata contains ALL OF the given values for the given keys. If no documents contain all the given key-value pairs, return an empty list.
      */
     public List<Document> searchByMetadata(Map<String, String> keysValues) {
+        if (keysValues == null || keysValues.isEmpty()){
+            return new ArrayList<Document>();
+        }
         List<Set<Document>> sets = new ArrayList<>();
         for (String key : keysValues.keySet()){
             String keyValuePair = key + keysValues.get(key);
@@ -521,7 +526,8 @@ public class DocumentStoreImpl implements DocumentStore {
      * @return a List of the matches. If there are no matches, return an empty list.
      */
     public List<Document> searchByKeywordAndMetadata(String keyword, Map<String, String> keysValues) {
-        List<Document> docsByKeyword = this.search(keyword);
+        String key = stripIllegalCharacters(keyword);
+        List<Document> docsByKeyword = this.search(key);
         List<Document> docsByMetadata = this.searchByMetadata(keysValues);
         Set<Document> docsByMetadataSet = new HashSet<>(docsByMetadata);
 
@@ -543,7 +549,8 @@ public class DocumentStoreImpl implements DocumentStore {
      * @return a List of the matches. If there are no matches, return an empty list.
      */
     public List<Document> searchByPrefixAndMetadata(String keywordPrefix, Map<String, String> keysValues) {
-        List<Document> docsByPrefix = this.searchByPrefix(keywordPrefix);
+        String keypre = stripIllegalCharacters(keywordPrefix);
+        List<Document> docsByPrefix = this.searchByPrefix(keypre);
         List<Document> docsByMetadata = this.searchByMetadata(keysValues);
         Set<Document> docsByMetadataSet = new HashSet<>(docsByMetadata);
 
@@ -589,7 +596,8 @@ public class DocumentStoreImpl implements DocumentStore {
      * @return a Set of URIs of the documents that were deleted.
      */
     public Set<URI> deleteAllWithKeywordAndMetadata(String keyword, Map<String, String> keysValues) {
-        Set<Document> docsWithKeywordAndMetadata = new HashSet<>(this.searchByKeywordAndMetadata(keyword, keysValues));
+        String key = stripIllegalCharacters(keyword);
+        Set<Document> docsWithKeywordAndMetadata = new HashSet<>(this.searchByKeywordAndMetadata(key, keysValues));
         Set<URI> deletedURIs = new HashSet<>();
         CommandSet<URI> commands = new CommandSet<>();
         for (Document doc : docsWithKeywordAndMetadata){
@@ -615,7 +623,8 @@ public class DocumentStoreImpl implements DocumentStore {
      * @return a Set of URIs of the documents that were deleted.
      */
     public Set<URI> deleteAllWithPrefixAndMetadata(String keywordPrefix, Map<String, String> keysValues) {
-        Set<Document> docsWithPrefixAndMetadata = new HashSet<>(this.searchByPrefixAndMetadata(keywordPrefix, keysValues));
+        String keypre = stripIllegalCharacters(keywordPrefix);
+        Set<Document> docsWithPrefixAndMetadata = new HashSet<>(this.searchByPrefixAndMetadata(keypre, keysValues));
         Set<URI> deletedURIs = new HashSet<>();
         CommandSet<URI> commands = new CommandSet<>();
         for (Document doc : docsWithPrefixAndMetadata){
