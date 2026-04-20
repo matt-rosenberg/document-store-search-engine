@@ -1,4 +1,3 @@
-
 package edu.yu.cs.com1320.project.impl;
 
 import java.util.NoSuchElementException;
@@ -46,5 +45,4 @@ public class MinHeapImpl<E extends Comparable<E>> extends MinHeap<E>{
         }
         elements = copy;
     }
-
 }

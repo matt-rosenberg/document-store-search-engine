@@ -20,9 +20,9 @@ public class DocumentStoreImpl implements DocumentStore {
     private StackImpl<Undoable> allCommands;
     private TrieImpl<Document> docSearch;
     private TrieImpl<Document> metadataDocSearch;
-    private int docCountLimit = -1;
+    private int docCountLimit = Integer.MAX_VALUE;
     private int docCount = 0;
-    private int docByteLimit = -1;
+    private int docByteLimit = Integer.MAX_VALUE;
     private int docBytes = 0;
     private MinHeapImpl<Document> heap;
 
@@ -52,6 +52,7 @@ public class DocumentStoreImpl implements DocumentStore {
             throw new IllegalArgumentException("There's no such document here");
         }
         String s = myDocs.get(uri).setMetadataValue(key, value); //put the new value in the hashtable
+        this.updateHeap(myDocs.get(uri)); //update the heap
         if (s != null){ //if there was a previous value, delete it from the trie
             metadataDocSearch.delete(key + s, myDocs.get(uri));
         }
@@ -60,6 +61,7 @@ public class DocumentStoreImpl implements DocumentStore {
         }
         GenericCommand<URI> com = new GenericCommand<>(uri, u -> {
             DocumentImpl doc = myDocs.get(u);
+            this.updateHeap(doc);
             doc.setMetadataValue(key, s); //put the old value back in the table
             if (s != null){ //put the old value back in the trie
                 metadataDocSearch.put(key + s, doc);
@@ -87,6 +89,7 @@ public class DocumentStoreImpl implements DocumentStore {
         if (myDocs.get(uri) == null){
             throw new IllegalArgumentException("There's no Document here");
         }
+        this.updateHeap(myDocs.get(uri));
         return myDocs.get(uri).getMetadataValue(key);
     }
 
@@ -507,13 +510,17 @@ public class DocumentStoreImpl implements DocumentStore {
         Set<Document> docsWithKeyword = this.docSearch.deleteAll(key);
         Set<URI> deletedURIs = new HashSet<>();
         CommandSet<URI> commands = new CommandSet<>();
-        long time = System.nanoTime();
+        long[] time = new long[1];
         for (Document doc : docsWithKeyword){
             URI uri = doc.getKey();
             deleteDoc(uri, doc);
+            removeDocFromHeap(doc);
             deletedURIs.add(uri);
             GenericCommand<URI> com = new GenericCommand<>(uri, u -> {
-                undoDeleteWithSetTime(doc, time);
+                if (time[0] == 0){
+                    time[0] = System.nanoTime();
+                }
+                undoDeleteWithSetTime(doc, time[0]);
             });
             commands.addCommand(com);
         }
@@ -540,7 +547,6 @@ public class DocumentStoreImpl implements DocumentStore {
         }
         this.myDocs.put(uri, null);
         decreaseDocFromMemoryCounts(doc);
-        removeDocFromHeap(doc);
     }
 
     /**
@@ -594,13 +600,17 @@ public class DocumentStoreImpl implements DocumentStore {
         Set<Document> docsWithPrefix = docSearch.deleteAllWithPrefix(keypre);
         Set<URI> deletedURIs = new HashSet<>();
         CommandSet<URI> commands = new CommandSet<>();
-        long time = System.nanoTime();
+        long[] time = new long[1];
         for (Document doc : docsWithPrefix){
             URI uri = doc.getKey();
             deleteDoc(uri, doc);
+            removeDocFromHeap(doc);
             deletedURIs.add(uri);
             GenericCommand<URI> com = new GenericCommand<>(uri, u -> {
-                undoDeleteWithSetTime(doc, time);
+                if (time[0] == 0){
+                    time[0] = System.nanoTime();
+                }
+                undoDeleteWithSetTime(doc, time[0]);
             });
             commands.addCommand(com);
         }
@@ -720,13 +730,17 @@ public class DocumentStoreImpl implements DocumentStore {
         Set<Document> docsWithMetadata = new HashSet<>(this.searchByMetadataWithoutUpdatingTime(keysValues));
         Set<URI> deletedURIs = new HashSet<>();
         CommandSet<URI> commands = new CommandSet<>();
-        long time = System.nanoTime();
+        long[] time = new long[1];
         for (Document doc : docsWithMetadata){
             URI uri = doc.getKey();
             deleteDoc(uri, doc);
+            removeDocFromHeap(doc);
             deletedURIs.add(uri);
             GenericCommand<URI> com = new GenericCommand<>(uri, u -> {
-                undoDeleteWithSetTime(doc, time);
+                if (time[0] == 0){
+                    time[0] = System.nanoTime();
+                }
+                undoDeleteWithSetTime(doc, time[0]);
             });
             commands.addCommand(com);
         }
@@ -748,13 +762,17 @@ public class DocumentStoreImpl implements DocumentStore {
         Set<Document> docsWithKeywordAndMetadata = new HashSet<>(this.searchByKeywordAndMetadata(key, keysValues));
         Set<URI> deletedURIs = new HashSet<>();
         CommandSet<URI> commands = new CommandSet<>();
-        long time = System.nanoTime();
+        long[] time = new long[1];
         for (Document doc : docsWithKeywordAndMetadata){
             URI uri = doc.getKey();
             deleteDoc(uri, doc);
+            removeDocFromHeap(doc);
             deletedURIs.add(uri);
             GenericCommand<URI> com = new GenericCommand<>(uri, u -> {
-                undoDeleteWithSetTime(doc, time);
+                if (time[0] == 0){
+                    time[0] = System.nanoTime();
+                }
+                undoDeleteWithSetTime(doc, time[0]);
             });
             commands.addCommand(com);
         }
@@ -776,13 +794,17 @@ public class DocumentStoreImpl implements DocumentStore {
         Set<Document> docsWithPrefixAndMetadata = new HashSet<>(this.searchByPrefixAndMetadata(keypre, keysValues));
         Set<URI> deletedURIs = new HashSet<>();
         CommandSet<URI> commands = new CommandSet<>();
-        long time = System.nanoTime();
+        long[] time = new long[1];
         for (Document doc : docsWithPrefixAndMetadata){
             URI uri = doc.getKey();
             deleteDoc(uri, doc);
+            removeDocFromHeap(doc);
             deletedURIs.add(uri);
             GenericCommand<URI> com = new GenericCommand<>(uri, u -> {
-                undoDeleteWithSetTime(doc, time);
+                if (time[0] == 0){
+                    time[0] = System.nanoTime();
+                }
+                undoDeleteWithSetTime(doc, time[0]);
             });
             commands.addCommand(com);
         }
@@ -900,4 +922,3 @@ public class DocumentStoreImpl implements DocumentStore {
         }
     }
 }
-
